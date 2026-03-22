@@ -1,0 +1,160 @@
+{
+  "project_name": "monroe_county_post_process_20260321",
+  "resume": false,
+  "notes": "Post-process Monroe County 1m SSW + SLR + Rainfall outputs. Jobs: (1) reproject each depth grid to EPSG:6437 US Survey Feet, (2) clip to Monroe County AOI, (3) generate contours at 1ft interval, (4) compound hazard (SSW+SLR), (5) zonal stats by parcel.",
+
+  "_reliability_docs": {
+    "validate_inputs_exist": "Pre-flight check: verify all input raster paths exist before any job starts. Set true in production to catch missing files early.",
+    "max_retries": "Retry each failed job up to N times. Use 2-3 for network-backed SMB drives prone to transient I/O errors.",
+    "retry_delay_s": "Initial wait (seconds) before first retry. Doubles on each subsequent attempt (exponential backoff).",
+    "stop_on_error": "If true, abort the entire pipeline on the first job failure instead of continuing. Recommended when downstream jobs depend on upstream outputs.",
+    "job_timeout_s": "Per-job wall-clock timeout in seconds. Null = no timeout. Set e.g. 600 (10 min) for large raster jobs on slow NAS."
+  },
+  "validate_inputs_exist": false,
+  "max_retries": 0,
+  "retry_delay_s": 2.0,
+  "stop_on_error": false,
+  "job_timeout_s": null,
+  "jobs": [
+    {
+      "op": "reproject",
+      "label": "reproject_10yr_to_6437",
+      "enabled": true,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-SurgeWiz-1m-Output/monroe_scenario_depth_10yr.tif"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_10yr_6437_ftus.tif",
+        "compress": "lzw",
+        "tiled": true,
+        "tile_size": 512,
+        "bigtiff": "YES",
+        "nodata": -9999.0
+      },
+      "reproject": {
+        "crs": "EPSG:6437",
+        "resampling": "bilinear"
+      }
+    },
+    {
+      "op": "reproject",
+      "label": "reproject_25yr_to_6437",
+      "enabled": true,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-SurgeWiz-1m-Output/monroe_scenario_depth_25yr.tif"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_25yr_6437_ftus.tif",
+        "compress": "lzw",
+        "tiled": true,
+        "tile_size": 512,
+        "bigtiff": "YES",
+        "nodata": -9999.0
+      },
+      "reproject": {
+        "crs": "EPSG:6437",
+        "resampling": "bilinear"
+      }
+    },
+    {
+      "op": "reproject",
+      "label": "reproject_100yr_to_6437",
+      "enabled": true,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-SurgeWiz-1m-Output/monroe_scenario_depth_100yr.tif"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_100yr_6437_ftus.tif",
+        "compress": "lzw",
+        "tiled": true,
+        "tile_size": 512,
+        "bigtiff": "YES",
+        "nodata": -9999.0
+      },
+      "reproject": {
+        "crs": "EPSG:6437",
+        "resampling": "bilinear"
+      }
+    },
+    {
+      "op": "reproject",
+      "label": "reproject_500yr_to_6437",
+      "enabled": true,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-SurgeWiz-1m-Output/monroe_scenario_depth_500yr.tif"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_500yr_6437_ftus.tif",
+        "compress": "lzw",
+        "tiled": true,
+        "tile_size": 512,
+        "bigtiff": "YES",
+        "nodata": -9999.0
+      },
+      "reproject": {
+        "crs": "EPSG:6437",
+        "resampling": "bilinear"
+      }
+    },
+    {
+      "op": "contour",
+      "label": "contours_100yr_1ft",
+      "enabled": true,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_100yr_6437_ftus.tif"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_contours_100yr_1ft.geojson"
+      },
+      "contour": {
+        "interval": 1.0,
+        "base": 0.0,
+        "unit": "ft",
+        "geometry_type": "linestring",
+        "output_format": "GeoJSON",
+        "elevation_field": "depth_ft",
+        "min_value": 0.01
+      }
+    },
+    {
+      "op": "compound",
+      "label": "compound_ssw_100yr_slr_2050_int",
+      "enabled": false,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_100yr_6437_ftus.tif", "label": "SSW_100yr"},
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-SLR-Output/monroe_slr_2050_int_ftus.tif", "label": "SLR_2050_int"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_compound_100yr_slr2050.tif",
+        "compress": "lzw",
+        "tiled": true,
+        "bigtiff": "YES"
+      },
+      "compound": {
+        "method": "max"
+      }
+    },
+    {
+      "op": "reclassify",
+      "label": "reclassify_100yr_depth_class",
+      "enabled": false,
+      "inputs": [
+        {"path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_100yr_6437_ftus.tif"}
+      ],
+      "output": {
+        "path": "/mnt/cgps/2019/1935_MonroeCounty/L_2025 Vulnerability Assessment/5_Exposure/20260321_CVG-GeoServ-Output/monroe_depth_class_100yr.tif",
+        "compress": "lzw",
+        "tiled": true
+      },
+      "reclassify": {
+        "default_value": 0,
+        "rules": [
+          {"vmin": 0.01, "vmax": 1.0,  "new_value": 1},
+          {"vmin": 1.0,  "vmax": 3.0,  "new_value": 2},
+          {"vmin": 3.0,  "vmax": 6.0,  "new_value": 3},
+          {"vmin": 6.0,  "vmax": 999,  "new_value": 4}
+        ]
+      }
+    }
+  ]
+}

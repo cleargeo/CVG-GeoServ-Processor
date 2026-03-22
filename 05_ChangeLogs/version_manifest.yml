@@ -1,0 +1,20 @@
+package: geoserv-processor
+current_version: "1.0.0"
+release_date: "2026-03-21"
+author: "Alex Zelenski, GISP"
+org: "Clearview Geographic, LLC"
+port: 8003
+companion_packages:
+  - name: storm-surge-wizard
+    version: "1.4.1"
+    port: 8080
+  - name: slr-wizard
+    version: "1.1.0"
+    port: 8001
+  - name: rainfall-wizard
+    version: "1.x"
+    port: 8002
+history:
+  - version: "1.0.0"
+    date: "2026-03-21"
+    notes: "Initial release. 8 core ops, CLI, FastAPI web, Docker."

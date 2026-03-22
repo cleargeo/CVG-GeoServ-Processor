@@ -1,0 +1,44 @@
+# CVG GeoServ Processor — Production docker-compose (with Caddy reverse proxy)
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+version: "3.9"
+
+services:
+  geoserv-processor:
+    image: cvg-geoserv-processor:latest
+    container_name: geoserv-processor-prod
+    expose:
+      - "8003"
+    volumes:
+      - /mnt/cgps:/mnt/cgps:ro          # NAS mount (read-only for inputs)
+      - geoserv_out:/mnt/cgps_out       # Output volume
+      - geoserv_recovery:/app/recovery
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: geoserv-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - geoserv-processor
+    restart: unless-stopped
+
+volumes:
+  geoserv_out:
+  geoserv_recovery:
+  caddy_data:
+  caddy_config:

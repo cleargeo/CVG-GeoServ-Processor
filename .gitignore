@@ -1,0 +1,36 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+
+# Data / outputs
+*.tif
+*.tiff
+*.geojson
+*.shp
+*.dbf
+*.shx
+*.prj
+*.cpg
+data/
+out/
+
+# Recovery
+*_checkpoint.json
+geoserv_checkpoint.json
+
+# Logs
+*.log
+out.txt
+
+# Docker
+.dockerignore

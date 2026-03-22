@@ -1,0 +1,33 @@
+# CVG GeoServ Processor — Development docker-compose
+# Usage: docker-compose up
+version: "3.9"
+
+services:
+  geoserv-processor:
+    build: .
+    container_name: geoserv-processor-dev
+    ports:
+      - "8097:8097"
+    volumes:
+      - ./geoserv_processor:/app/geoserv_processor:ro   # live-reload source
+      - ./data:/app/data                                  # local test data
+      - geoserv_recovery:/app/recovery
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=debug
+      - APP_PORT=8097
+    command: >
+      uvicorn geoserv_processor.api_jobs:app
+      --host 0.0.0.0
+      --port 8097
+      --reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8097/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  geoserv_recovery:

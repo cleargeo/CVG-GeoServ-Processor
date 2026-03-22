@@ -1,0 +1,19 @@
+22: - **Stop-on-error** (``cfg.stop_on_error=True``):
+38:     #   job_idx, op, label, output_path, elapsed_s, status[, error]
+188:       - job_idx, op, label, output_path, elapsed_s, status[, error]
+207:     if cfg.stop_on_error:
+227:                     "elapsed_s": 0.0,
+248:     overall_monitor.start()
+257:                 "output_path": None, "elapsed_s": 0.0, "status": "skipped",
+262:         mon.start()
+273:             mon.stop()
+274:             mon.log_summary(f"{job.op}[{idx}]")
+275:             recovery.mark_done(idx, output_path=out_path, elapsed_s=elapsed)
+278:                 "output_path": out_path, "elapsed_s": round(elapsed, 2),
+286:             mon.stop()
+291:                 "output_path": None, "elapsed_s": round(elapsed, 2),
+295:             if cfg.stop_on_error:
+307:                         "elapsed_s": 0.0,
+313:     overall_monitor.stop()
+314:     overall_monitor.log_summary("total run")
+321:              n_ok, n, n_err, n_skipped, overall_monitor.elapsed_s())
